@@ -1,0 +1,161 @@
+Mais il manque JWT
+
+Il y a un point important.
+
+Spring Security ne fournit pas directement une solution JWT complète prête à l'emploi.
+
+Pour ton application, je recommande JWT puisque tu auras :
+
+React
+   ↓
+POST /api/auth/login
+   ↓
+Spring Security
+   ↓
+JWT
+   ↓
+React conserve le token
+   ↓
+Authorization: Bearer <token>
+
+Pour JWT, tu peux ajouter la dépendance JJWT.
+
+Dans ton pom.xml :
+
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-api</artifactId>
+    <version>0.12.6</version>
+</dependency>
+
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-impl</artifactId>
+    <version>0.12.6</version>
+    <scope>runtime</scope>
+</dependency>
+
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-jackson</artifactId>
+    <version>0.12.6</version>
+    <scope>runtime</scope>
+</dependency>
+
+Cela te donnera :
+
+jjwt-api
+jjwt-impl
+jjwt-jackson
+Pour les fichiers Excel
+
+Comme ton application doit importer le fichier loyer.xlsx, il faudra Apache POI.
+
+Ajoute :
+
+<dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi-ooxml</artifactId>
+    <version>5.4.1</version>
+</dependency>
+
+Cela permettra de lire :
+
+.xlsx
+
+et de transformer les lignes Excel en objets Java.
+
+Par exemple :
+
+Excel
+ ↓
+Apache POI
+ ↓
+ContractImportDTO
+ ↓
+Validation
+ ↓
+ContractService
+ ↓
+PostgreSQL
+Pour les PDF
+
+Je ne l'ajouterais pas forcément dans la première version.
+
+Si tu veux uniquement permettre l'upload :
+
+Contrat.pdf
+Avenant.pdf
+PV.pdf
+
+Spring Boot peut gérer les fichiers avec MultipartFile.
+
+Tu n'as donc pas besoin d'une bibliothèque PDF simplement pour stocker les PDF.
+
+Si plus tard tu veux générer automatiquement des rapports PDF, on pourra ajouter une librairie dédiée.
+
+Configuration finale du projet
+
+Ton pom.xml aura donc essentiellement :
+
+Spring Boot
+│
+├── Spring Web
+├── Spring Data JPA
+├── Spring Security
+├── Validation
+├── Actuator
+│
+├── PostgreSQL
+├── Lombok
+├── DevTools
+│
+├── JJWT
+│   ├── jjwt-api
+│   ├── jjwt-impl
+│   └── jjwt-jackson
+│
+└── Apache POI
+    └── poi-ooxml
+Stack finale
+Frontend
+React + TypeScript
+       │
+       │ REST / JSON
+       ▼
+Backend
+Java 21
+Spring Boot 3.5.x
+       │
+       ├── Spring Web
+       ├── Spring Security + JWT
+       ├── Spring Data JPA
+       ├── Validation
+       └── Apache POI
+       │
+       ▼
+PostgreSQL
+
+                    APPLICATION GESTION DES LOYERS
+                              │
+          ┌───────────────────┼───────────────────┐
+          │                   │                   │
+       Dashboard          Contrats            Alertes
+          │                   │                   │
+    ┌─────┼─────┐       ┌─────┴─────┐       ┌────┼────┐
+    │     │     │       │           │       │    │    │
+  Loyers Régions Échéances  Nouveau  Recherche 30j 60j 90j
+                            contrat
+                                │
+                         ┌──────┴──────┐
+                         │             │
+                      Contrat       Avenants
+                         │             │
+                         └──────┬──────┘
+                                │
+                       Calcul automatique
+                                │
+                 ┌──────────────┼──────────────┐
+                 │              │              │
+             Renouvellement  Majoration    Loyer annuel
+                3 ans           10%          automatique

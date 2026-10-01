@@ -1,0 +1,11 @@
+package application.loyer1.repository;
+
+import application.loyer1.entity.Notification;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface NotificationRepository extends JpaRepository<Notification, Long> {
+    List<Notification> findByUserIdAndReadAtIsNullOrderByCreatedAtDesc(Long userId);
+    List<Notification> findByUserIdOrderByCreatedAtDesc(Long userId);
+    long countByUserIdAndReadAtIsNull(Long userId);
+}

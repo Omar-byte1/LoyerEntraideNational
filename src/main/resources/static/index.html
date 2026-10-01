@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loyer1 - Gestion des Loyers et Contrats de Location</title>
+  
+  <!-- Fonts Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS Design System -->
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+
+  <!-- =========================================================
+       ECRAN DE CONNEXION (JWT AUTHENTICATION)
+       ========================================================= -->
+  <div id="loginOverlay" class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <h1>Loyer1</h1>
+        <p>Gestion & Suivi des Contrats de Location</p>
+      </div>
+      
+      <div id="loginError" style="display:none; color:var(--danger); background:var(--danger-bg); padding:0.75rem; border-radius:0.5rem; margin-bottom:1rem; font-size:0.85rem; text-align:center;"></div>
+      
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Adresse Email</label>
+          <input type="email" id="loginEmail" class="form-control" placeholder="Entrez votre email..." required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="loginPassword">Mot de passe</label>
+          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1rem;">
+          Se Connecter
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       APPLICATION PRINCIPALE (SPA CONTAINER)
+       ========================================================= -->
+  <div id="appMain" id="app" style="display:none;">
+    
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">L1</div>
+        <div class="logo-text">Loyer1</div>
+      </div>
+      
+      <ul class="nav-list">
+        <li class="nav-item active">
+          <button data-tab="dashboard" onclick="navigateTo('dashboard')">
+            <span>📊</span> Tableau de Bord
+          </button>
+        </li>
+        <li class="nav-item">
+          <button data-tab="contracts" onclick="navigateTo('contracts')">
+            <span>📜</span> Contrats
+          </button>
+        </li>
+        <li class="nav-item">
+          <button data-tab="owners" onclick="navigateTo('owners')">
+            <span>👥</span> Propriétaires
+          </button>
+        </li>
+        <li class="nav-item">
+          <button data-tab="regions" onclick="navigateTo('regions')">
+            <span>📍</span> Régions & Délégations
+          </button>
+        </li>
+      </ul>
+      
+      <div class="user-profile">
+        <div class="user-info">
+          <span id="usernameDisplay" class="user-name">Administrateur</span>
+          <span id="userRoleDisplay" class="user-role">ADMINISTRATEUR</span>
+        </div>
+        <button class="btn btn-danger" style="padding:0.4rem 0.6rem; font-size:0.8rem;" onclick="logout()">
+          Déconnexion
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-wrapper">
+      
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <h2 id="pageTitle" class="page-title">Tableau de Bord</h2>
+        <div>
+          <button class="btn btn-primary" onclick="prepareNewContract()">+ Nouveau Contrat</button>
+        </div>
+      </header>
+
+      <!-- CONTENT SECTIONS -->
+      <main class="content-area">
+        
+        <!-- TAB 1: DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content">
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--primary-700); color:white;">📄</div>
+              <div>
+                <div id="kpiTotalContracts" class="stat-val">0</div>
+                <div class="stat-lbl">Contrats Totaux</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--success-bg); color:var(--success);">✅</div>
+              <div>
+                <div id="kpiActiveContracts" class="stat-val">0</div>
+                <div class="stat-lbl">Contrats Actifs</div>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--danger-bg); color:var(--danger);">⚠️</div>
+              <div>
+                <div id="kpiExpiredContracts" class="stat-val">0</div>
+                <div class="stat-lbl">Expirés / Résiliés</div>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--info-bg); color:var(--info);">💰</div>
+              <div>
+                <div id="kpiTotalRent" class="stat-val">0 TND</div>
+                <div class="stat-lbl">Total Loyers Annuels</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom:1rem;">Loyers par Région</h3>
+            <div id="regionBreakdown"></div>
+          </div>
+        </section>
+
+        <!-- TAB 2: CONTRACTS -->
+        <section id="tab-contracts" class="tab-content" style="display:none;">
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+              <h3>Liste des Contrats</h3>
+              <input type="text" class="form-control" style="width:260px;" placeholder="Rechercher par N° contrat..." onkeyup="filterContracts(this.value)">
+            </div>
+            
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>N° Contrat</th>
+                    <th>Propriétaire</th>
+                    <th>Délégation</th>
+                    <th>Loyer Mensuel</th>
+                    <th>Loyer Annuel (R01)</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="contractsTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: OWNERS -->
+        <section id="tab-owners" class="tab-content" style="display:none;">
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+              <h3>Liste des Propriétaires</h3>
+            </div>
+            
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nom / Raison Sociale</th>
+                    <th>Type</th>
+                    <th>CIN / Identifiant Fiscal</th>
+                    <th>Contact</th>
+                  </tr>
+                </thead>
+                <tbody id="ownersTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: REGIONS -->
+        <section id="tab-regions" class="tab-content" style="display:none;">
+          <div id="regionsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;"></div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL NOUVEAU CONTRAT (RÉGLES R01 ET R02)
+       ========================================================= -->
+  <div id="contractModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-body">
+      <div class="modal-header">
+        <h3 id="modalTitle">Nouveau Contrat de Location</h3>
+        <button class="btn btn-secondary" onclick="closeModal('contractModal')">✕</button>
+      </div>
+
+      <form onsubmit="handleSaveContract(event)">
+        <div class="form-group">
+          <label class="form-label">Numéro de Contrat</label>
+          <input type="text" id="modalContractNumber" class="form-control" placeholder="CTR-2026-001" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nom du Propriétaire</label>
+          <input type="text" id="modalOwnerName" class="form-control" placeholder="ex: Société Immobilière Loyer" value="Société Immobilière Loyer" required>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label class="form-label">Région</label>
+            <input type="text" id="modalRegionName" class="form-control" placeholder="ex: Tunis" value="Tunis" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Délégation</label>
+            <input type="text" id="modalDelegationName" class="form-control" placeholder="ex: Tunis Centre" value="Tunis Centre" required>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label class="form-label">Loyer Mensuel (TND)</label>
+            <input type="number" id="modalMonthlyRent" class="form-control" placeholder="1200" oninput="updateContractCalculations()" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Loyer Annuel (Calculé R01)</label>
+            <input type="number" id="modalAnnualRent" class="form-control" style="background:rgba(255,255,255,0.05); color:var(--primary-500); font-weight:bold;" readonly>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label class="form-label">Date de Début</label>
+            <input type="date" id="modalStartDate" class="form-control" onchange="updateContractCalculations()" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Durée (Années)</label>
+            <input type="number" id="modalDurationYears" class="form-control" value="1" min="1" max="30" oninput="updateContractCalculations()" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Date de Fin (Calculée R02)</label>
+          <input type="date" id="modalEndDate" class="form-control" style="background:rgba(255,255,255,0.05);" readonly>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('contractModal')">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer le Contrat</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script src="/app.js"></script>
+</body>
+</html>

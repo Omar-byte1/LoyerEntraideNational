@@ -1,0 +1,51 @@
+# ============================================
+# Application de Gestion des Loyers
+# ============================================
+
+spring:
+  application:
+    name: loyer1
+
+  # --- Base de données PostgreSQL ---
+  datasource:
+    url: jdbc:postgresql://localhost:5432/loyer_db
+    username: postgres
+    password: 123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  # --- Upload de fichiers ---
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# --- Serveur ---
+server:
+  port: 8080
+
+# --- Configuration JWT ---
+app:
+  jwt:
+    secret: VotreCleSecreteTresLongueEtComplexePourJWT2026LouerApplication
+    expiration-ms: 86400000       # 24 heures
+    refresh-expiration-ms: 604800000  # 7 jours
+
+  # --- Stockage des documents ---
+  upload:
+    dir: ./uploads
+
+# --- Logging ---
+logging:
+  level:
+    application.loyer1: DEBUG
+    org.springframework.security: INFO

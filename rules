@@ -1,0 +1,1962 @@
+# CAHIER DES CHARGES
+
+## Application web de gestion et de suivi des contrats de location
+
+**Version : 1.0**
+**Type : Application web interne**
+**Domaine : Gestion administrative et financière des contrats de location**
+
+---
+
+# 1. Présentation du projet
+
+L'objectif du projet est de développer une application web permettant de centraliser, gérer, suivre et contrôler les contrats de location immobilière.
+
+L'application remplacera progressivement les fichiers Excel actuellement utilisés pour le suivi des loyers.
+
+Elle devra notamment permettre :
+
+* l'enregistrement des contrats ;
+* la gestion des propriétaires ;
+* la gestion des régions et délégations ;
+* la gestion des avenants ;
+* le suivi des majorations de loyer ;
+* le calcul automatique des échéances ;
+* le calcul des montants mensuels et annuels ;
+* la détection des contrats arrivant à échéance ;
+* la gestion documentaire ;
+* la génération d'alertes ;
+* la production de tableaux de bord ;
+* la recherche et le filtrage des contrats ;
+* l'importation initiale des données Excel ;
+* la traçabilité des modifications.
+
+---
+
+# 2. Objectifs
+
+## 2.1 Objectif principal
+
+Créer un système centralisé permettant de connaître à tout moment :
+
+> **Quels sont les contrats existants, où sont-ils situés, combien coûtent-ils, quand arrivent-ils à échéance, quelles majorations ont été appliquées et quelles actions doivent être effectuées.**
+
+## 2.2 Objectifs secondaires
+
+L'application doit :
+
+1. réduire la dépendance aux fichiers Excel ;
+2. éviter les erreurs de calcul ;
+3. automatiser les échéances ;
+4. conserver l'historique des modifications ;
+5. centraliser les documents ;
+6. faciliter les contrôles administratifs ;
+7. fournir des statistiques en temps réel ;
+8. faciliter la préparation des renouvellements ;
+9. permettre une recherche rapide ;
+10. sécuriser l'accès aux informations.
+
+---
+
+# 3. Périmètre fonctionnel
+
+L'application sera composée des modules suivants :
+
+1. Authentification
+2. Dashboard
+3. Gestion des contrats
+4. Gestion des propriétaires
+5. Gestion des régions
+6. Gestion des délégations
+7. Gestion des avenants
+8. Gestion des majorations
+9. Gestion des échéances
+10. Gestion documentaire
+11. Notifications et alertes
+12. Rapports et exports
+13. Import Excel
+14. Utilisateurs et rôles
+15. Paramétrage
+16. Journal d'audit
+
+---
+
+# 4. Architecture fonctionnelle
+
+```text
+                         APPLICATION
+                              │
+        ┌─────────────────────┼──────────────────────┐
+        │                     │                      │
+    Administration         Gestion              Reporting
+        │                     │                      │
+   Utilisateurs          Contrats               Dashboard
+   Rôles                  Avenants               Statistiques
+   Paramètres             Loyers                 Exports
+                          Échéances
+                          Documents
+        │                     │
+        └─────────────────────┼──────────────────────┘
+                              │
+                         Base de données
+                              │
+                   PostgreSQL / SQL Database
+```
+
+---
+
+# 5. Authentification
+
+L'utilisateur doit se connecter avec :
+
+* email ou identifiant ;
+* mot de passe.
+
+Optionnellement :
+
+* authentification à deux facteurs ;
+* expiration de session ;
+* récupération du mot de passe.
+
+Après connexion, l'application détermine automatiquement les droits associés au rôle de l'utilisateur.
+
+---
+
+# 6. Rôles et permissions
+
+## 6.1 Administrateur
+
+Accès complet :
+
+* créer/modifier/supprimer les utilisateurs ;
+* gérer les rôles ;
+* gérer les paramètres ;
+* créer/modifier/supprimer les contrats ;
+* gérer les régions ;
+* gérer les délégations ;
+* gérer les propriétaires ;
+* gérer les avenants ;
+* importer les données ;
+* exporter les données ;
+* consulter les journaux ;
+* gérer les règles de calcul.
+
+## 6.2 Gestionnaire
+
+Peut :
+
+* créer un contrat ;
+* modifier un contrat ;
+* créer un avenant ;
+* enregistrer une majoration ;
+* ajouter des documents ;
+* consulter les échéances ;
+* consulter le dashboard ;
+* générer des rapports.
+
+Ne peut pas :
+
+* supprimer définitivement les utilisateurs ;
+* modifier les règles globales ;
+* consulter certaines fonctions d'administration.
+
+## 6.3 Responsable / Superviseur
+
+Accès principalement en lecture et contrôle :
+
+* dashboard ;
+* contrats ;
+* échéances ;
+* finances ;
+* rapports ;
+* documents.
+
+Peut éventuellement valider :
+
+* nouveaux contrats ;
+* avenants ;
+* modifications importantes ;
+* majorations.
+
+## 6.4 Consultation
+
+Accès lecture seule :
+
+* contrats ;
+* propriétaires ;
+* échéances ;
+* dashboard ;
+* rapports autorisés.
+
+Aucune modification.
+
+---
+
+# 7. Dashboard
+
+Le dashboard constitue la page principale après connexion.
+
+## 7.1 Indicateurs
+
+Afficher :
+
+### Contrats
+
+* Nombre total de contrats
+* Contrats actifs
+* Contrats expirés
+* Contrats suspendus
+* Contrats résiliés
+
+### Échéances
+
+* Échéances dans 30 jours
+* Échéances dans 60 jours
+* Échéances dans 90 jours
+* Échéances dépassées
+
+### Finances
+
+* Total des loyers mensuels
+* Total annuel
+* Montant des charges
+* Montant des majorations
+
+### Avenants
+
+* Avenants récents
+* Avenants en attente
+* Majorations à appliquer
+
+---
+
+# 8. Dashboard graphique
+
+Le dashboard doit proposer plusieurs graphiques.
+
+## 8.1 Loyers par région
+
+Graphique permettant de connaître le montant total des loyers par coordination régionale.
+
+## 8.2 Nombre de contrats par région
+
+Permet d'identifier la répartition géographique du parc locatif.
+
+## 8.3 Échéances
+
+Graphique :
+
+```text
+0-30 jours
+31-60 jours
+61-90 jours
++90 jours
+Expirés
+```
+
+## 8.4 Évolution financière
+
+Afficher l'évolution du montant total des loyers :
+
+* par mois ;
+* par trimestre ;
+* par année.
+
+## 8.5 Répartition des contrats
+
+Par :
+
+* région ;
+* délégation ;
+* affectation ;
+* statut ;
+* type de local.
+
+---
+
+# 9. Module Contrats
+
+## 9.1 Liste des contrats
+
+Colonnes proposées :
+
+| Champ         | Description            |
+| ------------- | ---------------------- |
+| N°            | Numéro interne         |
+| Région        | Coordination régionale |
+| Délégation    | Délégation concernée   |
+| Propriétaire  | Nom du propriétaire    |
+| Adresse       | Adresse du local       |
+| Affectation   | Utilisation du local   |
+| Date début    | Début du contrat       |
+| Date fin      | Fin calculée           |
+| Loyer mensuel | Montant actuel         |
+| Loyer annuel  | Calcul automatique     |
+| Statut        | État du contrat        |
+| Échéance      | Prochaine échéance     |
+
+Actions :
+
+* Voir
+* Modifier
+* Ajouter avenant
+* Ajouter document
+* Historique
+* Archiver
+
+---
+
+# 10. Recherche et filtres
+
+La recherche doit être disponible globalement.
+
+Recherche par :
+
+* numéro ;
+* propriétaire ;
+* région ;
+* délégation ;
+* adresse ;
+* référence foncière ;
+* affectation.
+
+Filtres :
+
+* contrats actifs ;
+* expirés ;
+* échéance < 30 jours ;
+* échéance < 60 jours ;
+* échéance < 90 jours ;
+* majoration à appliquer ;
+* région ;
+* délégation ;
+* montant ;
+* année.
+
+---
+
+# 11. Formulaire Nouveau contrat
+
+Le formulaire sera divisé en plusieurs sections.
+
+## Section A — Identification
+
+* Numéro du contrat
+* Région
+* Délégation
+* Service / affectation
+* Objet du local
+
+## Section B — Propriétaire
+
+* Propriétaire
+* Type : personne physique / personne morale
+* CIN / Identifiant, si applicable
+* Téléphone
+* Email
+* Adresse
+
+## Section C — Local
+
+* Adresse
+* Référence foncière
+* Type de local
+* Superficie construite
+* Superficie utilisée
+* Superficie non utilisée
+* Observations
+
+Ces champs reprennent notamment les informations présentes dans l'état global du fichier actuel.
+
+## Section D — Contrat
+
+* Date du contrat
+* Date de début
+* Durée
+* Date de fin
+* Type de contrat
+* Statut
+* Conditions particulières
+
+## Section E — Finances
+
+* Montant mensuel initial
+* Charges locatives
+* Autres charges
+* Montant mensuel actuel
+* Montant annuel
+
+## Section F — Majorations
+
+* Majoration applicable : Oui / Non
+* Pourcentage
+* Périodicité
+* Dernière majoration
+* Prochaine majoration
+
+## Section G — Documents
+
+Upload :
+
+* contrat ;
+* avenant ;
+* PV ;
+* justificatifs ;
+* autres documents.
+
+---
+
+# 12. Calculs automatiques
+
+## 12.1 Loyer annuel
+
+```text
+Loyer annuel = Loyer mensuel × 12
+```
+
+Exemple :
+
+```text
+7 500 × 12 = 90 000 DH
+```
+
+Le montant annuel ne doit pas être saisi manuellement sauf cas exceptionnel autorisé par l'administrateur.
+
+---
+
+# 13. Gestion de la durée du contrat
+
+Le système doit permettre de définir la durée.
+
+Exemple :
+
+```text
+Date début : 25/02/2023
+Durée : 3 ans
+
+Date fin = 25/02/2026
+```
+
+La durée doit être configurable :
+
+* 1 an ;
+* 2 ans ;
+* 3 ans ;
+* 5 ans ;
+* autre durée.
+
+---
+
+# 14. Renouvellement automatique
+
+Le système calcule automatiquement la prochaine échéance.
+
+Exemple :
+
+```text
+Contrat
+25/02/2023
+       ↓
++ 3 ans
+       ↓
+25/02/2026
+```
+
+Après renouvellement :
+
+```text
+25/02/2026
+       ↓
++ 3 ans
+       ↓
+25/02/2029
+```
+
+L'application ne doit cependant pas renouveler juridiquement un contrat automatiquement.
+
+Elle doit :
+
+> **calculer l'échéance et proposer l'action de renouvellement.**
+
+La validation juridique/administrative reste effectuée par un utilisateur autorisé.
+
+---
+
+# 15. Majoration automatique
+
+Le système doit supporter une règle configurable.
+
+Exemple par défaut :
+
+```text
+Majoration : 10 %
+Périodicité : 3 ans
+```
+
+Formule :
+
+```text
+Nouveau loyer =
+Loyer précédent × (1 + pourcentage / 100)
+```
+
+Exemple :
+
+```text
+5 000 DH
++
+10 %
+=
+5 500 DH
+```
+
+Puis :
+
+```text
+5 500 × 1,10
+= 6 050 DH
+```
+
+---
+
+# 16. Important : historique des majorations
+
+Il ne faut jamais simplement écraser l'ancien montant.
+
+Le système doit conserver :
+
+```text
+Historique du contrat
+
+01/01/2020
+Loyer : 5 000 DH
+
+01/01/2023
+Majoration : 10 %
+Loyer : 5 500 DH
+
+01/01/2026
+Majoration : 10 %
+Loyer : 6 050 DH
+```
+
+Ainsi, chaque évolution est traçable.
+
+---
+
+# 17. Règle configurable
+
+Le système doit permettre à l'administrateur de modifier :
+
+* durée standard ;
+* pourcentage de majoration ;
+* fréquence de majoration ;
+* délai d'alerte ;
+* règles de calcul.
+
+Exemple :
+
+```text
+Durée standard : 3 ans
+Majoration : 10 %
+Alerte 1 : 90 jours
+Alerte 2 : 60 jours
+Alerte 3 : 30 jours
+```
+
+Cela évite de coder les règles en dur.
+
+---
+
+# 18. Module Avenants
+
+Un contrat peut posséder plusieurs avenants.
+
+Pour chaque avenant :
+
+* numéro ;
+* type ;
+* date ;
+* date d'effet ;
+* objet ;
+* ancien montant ;
+* nouveau montant ;
+* ancien terme ;
+* nouveau terme ;
+* commentaire ;
+* document PDF ;
+* utilisateur ayant enregistré l'avenant.
+
+Types possibles :
+
+* majoration ;
+* renouvellement ;
+* modification de durée ;
+* changement de propriétaire ;
+* changement d'adresse ;
+* changement d'affectation ;
+* autre.
+
+---
+
+# 19. Workflow d'un avenant
+
+```text
+Création
+   ↓
+Brouillon
+   ↓
+Soumission
+   ↓
+Validation
+   ↓
+Application
+   ↓
+Historisation
+```
+
+Une fois validé, l'avenant modifie les données actuelles du contrat mais conserve l'ancien état dans l'historique.
+
+---
+
+# 20. Statuts des contrats
+
+Les statuts proposés :
+
+### 🟢 ACTIF
+
+Contrat actuellement valide.
+
+### 🟠 ÉCHÉANCE PROCHE
+
+Échéance dans le délai d'alerte.
+
+### 🔴 EXPIRÉ
+
+Date de fin dépassée sans renouvellement enregistré.
+
+### 🔵 EN RENOUVELLEMENT
+
+Processus de renouvellement en cours.
+
+### ⚫ RÉSILIÉ
+
+Contrat officiellement résilié.
+
+### ⚪ ARCHIVÉ
+
+Ancien contrat conservé pour historique.
+
+---
+
+# 21. Système d'alertes
+
+Le système doit générer automatiquement les alertes.
+
+## Exemple
+
+```text
+⚠️ Contrat #124
+
+Échéance :
+15/11/2026
+
+Il reste :
+45 jours
+```
+
+Autres alertes :
+
+```text
+🔴 Contrat expiré
+
+⚠️ Majoration à vérifier
+
+⚠️ Document manquant
+
+⚠️ Avenant non validé
+```
+
+---
+
+# 22. Notifications
+
+Les notifications peuvent apparaître :
+
+* dans l'application ;
+* par email.
+
+Exemple quotidien :
+
+> **Résumé des contrats nécessitant une action**
+
+```text
+3 contrats arrivent à échéance dans 30 jours.
+
+2 majorations doivent être vérifiées.
+
+1 contrat est expiré.
+```
+
+---
+
+# 23. Gestion documentaire
+
+Chaque contrat possède un espace documentaire.
+
+Structure :
+
+```text
+Contrat #001
+│
+├── Contrat initial.pdf
+├── Avenant 01.pdf
+├── Avenant 02.pdf
+├── PV commission.pdf
+└── Autres documents/
+```
+
+Métadonnées :
+
+* nom ;
+* type ;
+* date ;
+* taille ;
+* utilisateur ;
+* date d'ajout.
+
+---
+
+# 24. Gestion des régions
+
+Table :
+
+```text
+Région
+├── Nom
+├── Code
+├── Statut
+└── Délégations
+```
+
+Exemples provenant de la structure actuelle :
+
+* Souss Massa
+* Béni Mellal
+* Tanger-Tétouan-Al Hoceima
+* etc.
+
+---
+
+# 25. Gestion des délégations
+
+Une délégation appartient à une région.
+
+```text
+Région
+   ↓
+Délégation
+   ↓
+Contrats
+```
+
+Une délégation peut avoir plusieurs contrats.
+
+---
+
+# 26. Gestion des propriétaires
+
+Un propriétaire peut avoir plusieurs contrats.
+
+```text
+Propriétaire
+      │
+ ┌────┼────┐
+ ↓    ↓    ↓
+C001 C014 C027
+```
+
+Cela évite de répéter inutilement les informations du propriétaire.
+
+---
+
+# 27. Base de données
+
+La base de données recommandée est **PostgreSQL**.
+
+## Table users
+
+```text
+users
+-----
+id
+first_name
+last_name
+email
+password_hash
+role_id
+active
+created_at
+updated_at
+```
+
+## Table roles
+
+```text
+roles
+-----
+id
+name
+description
+```
+
+## Table regions
+
+```text
+regions
+-------
+id
+name
+code
+active
+```
+
+## Table delegations
+
+```text
+delegations
+-----------
+id
+region_id
+name
+code
+active
+```
+
+---
+
+# 28. Table propriétaires
+
+```text
+owners
+------
+id
+type
+name
+national_id
+phone
+email
+address
+notes
+created_at
+updated_at
+```
+
+---
+
+# 29. Table contracts
+
+```text
+contracts
+---------
+id
+contract_number
+region_id
+delegation_id
+owner_id
+
+address
+land_reference
+
+property_type
+assignment
+
+built_area
+used_area
+unused_area
+
+start_date
+end_date
+duration_months
+
+initial_monthly_rent
+current_monthly_rent
+
+charges
+annual_rent
+
+status
+
+created_at
+updated_at
+created_by
+updated_by
+```
+
+---
+
+# 30. Table amendments
+
+```text
+amendments
+----------
+id
+contract_id
+number
+type
+
+date
+effective_date
+
+old_rent
+new_rent
+
+old_end_date
+new_end_date
+
+description
+
+status
+
+document_id
+created_by
+validated_by
+
+created_at
+validated_at
+```
+
+---
+
+# 31. Table rent_increases
+
+```text
+rent_increases
+--------------
+id
+contract_id
+
+previous_amount
+percentage
+increase_amount
+new_amount
+
+effective_date
+
+reason
+amendment_id
+
+created_at
+created_by
+```
+
+---
+
+# 32. Table documents
+
+```text
+documents
+---------
+id
+contract_id
+amendment_id
+
+name
+file_path
+file_type
+file_size
+
+document_type
+
+uploaded_by
+uploaded_at
+```
+
+---
+
+# 33. Table notifications
+
+```text
+notifications
+-------------
+id
+user_id
+contract_id
+
+type
+title
+message
+
+due_date
+read_at
+created_at
+```
+
+---
+
+# 34. Table audit_logs
+
+Cette table est essentielle.
+
+```text
+audit_logs
+----------
+id
+user_id
+
+entity_type
+entity_id
+
+action
+
+old_values
+new_values
+
+ip_address
+created_at
+```
+
+Exemple :
+
+```text
+Utilisateur : admin
+Action : UPDATE
+
+Ancien loyer : 5000
+Nouveau loyer : 5500
+
+Date : 01/10/2026
+```
+
+---
+
+# 35. Relations principales
+
+```text
+REGION
+  │
+  └──< DELEGATION
+           │
+           └──< CONTRACT
+                    │
+                    ├── OWNER
+                    ├──< AMENDMENT
+                    ├──< RENT_INCREASE
+                    ├──< DOCUMENT
+                    └──< NOTIFICATION
+```
+
+---
+
+# 36. API REST
+
+Le backend exposera une API REST.
+
+## Authentification
+
+```http
+POST /api/auth/login
+POST /api/auth/refresh
+POST /api/auth/logout
+GET  /api/auth/me
+```
+
+---
+
+# 37. Utilisateurs
+
+```http
+GET    /api/users
+GET    /api/users/{id}
+POST   /api/users
+PUT    /api/users/{id}
+DELETE /api/users/{id}
+```
+
+---
+
+# 38. Régions
+
+```http
+GET    /api/regions
+GET    /api/regions/{id}
+POST   /api/regions
+PUT    /api/regions/{id}
+DELETE /api/regions/{id}
+```
+
+---
+
+# 39. Délégations
+
+```http
+GET    /api/delegations
+GET    /api/delegations/{id}
+POST   /api/delegations
+PUT    /api/delegations/{id}
+DELETE /api/delegations/{id}
+```
+
+---
+
+# 40. Propriétaires
+
+```http
+GET    /api/owners
+GET    /api/owners/{id}
+POST   /api/owners
+PUT    /api/owners/{id}
+DELETE /api/owners/{id}
+```
+
+Recherche :
+
+```http
+GET /api/owners?search=...
+```
+
+---
+
+# 41. Contrats
+
+```http
+GET    /api/contracts
+GET    /api/contracts/{id}
+POST   /api/contracts
+PUT    /api/contracts/{id}
+DELETE /api/contracts/{id}
+```
+
+Recherche :
+
+```http
+GET /api/contracts?region=...
+GET /api/contracts?delegation=...
+GET /api/contracts?status=ACTIVE
+GET /api/contracts?expiresBefore=...
+GET /api/contracts?owner=...
+```
+
+---
+
+# 42. Échéances
+
+```http
+GET /api/contracts/expiring?days=30
+GET /api/contracts/expiring?days=60
+GET /api/contracts/expiring?days=90
+GET /api/contracts/expired
+```
+
+---
+
+# 43. Avenants
+
+```http
+GET    /api/contracts/{id}/amendments
+POST   /api/contracts/{id}/amendments
+GET    /api/amendments/{id}
+PUT    /api/amendments/{id}
+POST   /api/amendments/{id}/validate
+```
+
+---
+
+# 44. Majorations
+
+```http
+GET  /api/contracts/{id}/rent-increases
+POST /api/contracts/{id}/rent-increases
+POST /api/contracts/{id}/calculate-increase
+```
+
+Exemple de réponse :
+
+```json
+{
+  "currentRent": 5000,
+  "percentage": 10,
+  "increaseAmount": 500,
+  "newRent": 5500,
+  "effectiveDate": "2026-10-01"
+}
+```
+
+---
+
+# 45. Dashboard API
+
+```http
+GET /api/dashboard/summary
+GET /api/dashboard/rents-by-region
+GET /api/dashboard/contracts-by-status
+GET /api/dashboard/expirations
+GET /api/dashboard/rent-evolution
+```
+
+---
+
+# 46. Documents
+
+```http
+POST   /api/contracts/{id}/documents
+GET    /api/contracts/{id}/documents
+GET    /api/documents/{id}
+DELETE /api/documents/{id}
+```
+
+---
+
+# 47. Import Excel
+
+Une fonction spéciale permettra d'importer le fichier historique.
+
+```http
+POST /api/import/excel
+GET  /api/import/{id}/status
+GET  /api/import/{id}/errors
+POST /api/import/{id}/confirm
+```
+
+## Processus
+
+```text
+Excel
+ ↓
+Lecture
+ ↓
+Détection des colonnes
+ ↓
+Nettoyage
+ ↓
+Validation
+ ↓
+Détection des doublons
+ ↓
+Prévisualisation
+ ↓
+Confirmation
+ ↓
+Import PostgreSQL
+```
+
+---
+
+# 48. Import des données actuelles
+
+Le fichier actuel possède plusieurs feuilles et plusieurs états historiques.
+
+L'import devra donc **ne pas considérer chaque feuille comme une liste indépendante de contrats**.
+
+Il faudra :
+
+1. identifier la source ;
+2. normaliser les colonnes ;
+3. identifier les contrats ;
+4. fusionner les données ;
+5. détecter les doublons ;
+6. conserver l'information historique ;
+7. signaler les incohérences.
+
+Par exemple, les différentes feuilles utilisent des informations telles que :
+
+* coordination régionale ;
+* délégation ;
+* propriétaire ;
+* montant initial ;
+* montant actuel ;
+* date du contrat ;
+* date du dernier annexe ;
+* date de dernière majoration ;
+* adresse ;
+* affectation ;
+* référence foncière.
+
+---
+
+# 49. Gestion des incohérences à l'import
+
+L'application doit signaler :
+
+### Erreur critique
+
+```text
+Date de fin antérieure à la date de début.
+```
+
+### Avertissement
+
+```text
+Montant actuel absent.
+```
+
+### Doublon potentiel
+
+```text
+Contrat similaire détecté :
+Même délégation + même adresse + même propriétaire.
+```
+
+### Donnée ambiguë
+
+```text
+Date "2004" détectée au lieu d'une date complète.
+```
+
+L'utilisateur devra pouvoir corriger avant validation.
+
+---
+
+# 50. Validation des données
+
+Règles :
+
+* montant >= 0 ;
+* date de fin >= date de début ;
+* pourcentage >= 0 ;
+* superficie >= 0 ;
+* email valide ;
+* numéro de contrat unique ;
+* région obligatoire ;
+* délégation obligatoire ;
+* propriétaire obligatoire ;
+* date de début obligatoire.
+
+---
+
+# 51. Sécurité
+
+## Authentification
+
+Utilisation de :
+
+* JWT ou session sécurisée ;
+* mots de passe hashés ;
+* expiration des tokens ;
+* contrôle des permissions.
+
+## Autorisation
+
+Chaque endpoint doit vérifier le rôle de l'utilisateur.
+
+Exemple :
+
+```text
+GET /contracts
+→ Gestionnaire : OK
+
+DELETE /contracts/12
+→ Gestionnaire : NON
+
+DELETE /contracts/12
+→ Administrateur : OK
+```
+
+## Protection
+
+Prévoir :
+
+* HTTPS ;
+* protection SQL Injection ;
+* protection XSS ;
+* protection CSRF selon architecture ;
+* validation serveur ;
+* limitation des tentatives de connexion ;
+* journalisation.
+
+---
+
+# 52. Sauvegarde
+
+La base de données doit être sauvegardée automatiquement.
+
+Proposition :
+
+```text
+Backup quotidien
+Backup hebdomadaire
+Backup mensuel
+```
+
+Les documents doivent également être sauvegardés.
+
+---
+
+# 53. Interface utilisateur
+
+L'interface doit être :
+
+* responsive ;
+* claire ;
+* en français ;
+* adaptée à un usage administratif ;
+* simple pour un utilisateur non technique.
+
+Navigation :
+
+```text
+┌──────────────────────────────────────────────┐
+│ LOGO             Gestion des Loyers          │
+├──────────────┬───────────────────────────────┤
+│              │                               │
+│ Dashboard    │                               │
+│ Contrats     │       CONTENU                 │
+│ Propriétaires│                               │
+│ Régions      │                               │
+│ Délégations  │                               │
+│ Avenants     │                               │
+│ Échéances    │                               │
+│ Documents    │                               │
+│ Rapports     │                               │
+│              │                               │
+│ Administration│                              │
+└──────────────┴───────────────────────────────┘
+```
+
+---
+
+# 54. Page « Échéances »
+
+Cette page sera particulièrement importante.
+
+Exemple :
+
+| Contrat | Délégation | Échéance   | Jours restants | Action     |
+| ------- | ---------- | ---------- | -------------: | ---------- |
+| C001    | Agadir     | 15/10/2026 |             14 | Renouveler |
+| C024    | Tiznit     | 10/11/2026 |             40 | Préparer   |
+| C038    | Rabat      | 05/01/2027 |             96 | —          |
+
+Filtres :
+
+* 30 jours ;
+* 60 jours ;
+* 90 jours ;
+* expirés ;
+* région ;
+* délégation.
+
+---
+
+# 55. Page « Rapports »
+
+L'utilisateur pourra générer :
+
+### Rapport général
+
+* liste complète des contrats ;
+* montants ;
+* échéances.
+
+### Rapport financier
+
+* loyers mensuels ;
+* loyers annuels ;
+* charges ;
+* évolution.
+
+### Rapport échéances
+
+* contrats arrivant à échéance ;
+* contrats expirés.
+
+### Rapport majorations
+
+* anciennes valeurs ;
+* nouvelles valeurs ;
+* dates ;
+* pourcentages.
+
+### Rapport par région
+
+* nombre de contrats ;
+* montant mensuel ;
+* montant annuel.
+
+Formats :
+
+* PDF ;
+* Excel ;
+* CSV.
+
+---
+
+# 56. Fonction « Export Excel »
+
+L'utilisateur pourra sélectionner :
+
+```text
+Tous les contrats
+ou
+Région
+ou
+Délégation
+ou
+Période
+```
+
+puis :
+
+> **Exporter Excel**
+
+L'export sera généré à partir de la base de données actuelle, et non d'un ancien fichier Excel.
+
+---
+
+# 57. Workflow complet d'un contrat
+
+```text
+Nouveau contrat
+      ↓
+Saisie formulaire
+      ↓
+Validation
+      ↓
+ACTIF
+      ↓
+Surveillance automatique
+      │
+      ├── Échéance proche
+      │        ↓
+      │   Notification
+      │        ↓
+      │   Préparation renouvellement
+      │
+      ├── Majoration
+      │        ↓
+      │   Calcul automatique
+      │        ↓
+      │   Validation
+      │
+      └── Résiliation
+               ↓
+           ARCHIVAGE
+```
+
+---
+
+# 58. Règles métier principales
+
+## R01 — Loyer annuel
+
+```text
+annuel = mensuel × 12
+```
+
+## R02 — Date de fin
+
+```text
+date_fin = date_début + durée
+```
+
+## R03 — Prochaine majoration
+
+```text
+prochaine_majoration =
+dernière_majoration + période
+```
+
+## R04 — Calcul de majoration
+
+```text
+nouveau_montant =
+ancien_montant × (1 + taux / 100)
+```
+
+## R05 — Alerte
+
+```text
+si date_fin - date_actuelle <= seuil
+→ créer une notification
+```
+
+## R06 — Expiration
+
+```text
+si date_fin < date_actuelle
+et contrat non renouvelé
+→ statut = EXPIRÉ
+```
+
+## R07 — Historisation
+
+Toute modification financière doit créer une entrée historique.
+
+---
+
+# 59. Règle importante concernant le renouvellement
+
+L'application **ne doit pas considérer qu'un contrat est juridiquement renouvelé uniquement parce que trois ans sont écoulés**.
+
+Elle doit distinguer :
+
+```text
+Échéance calculée
+        ≠
+Renouvellement validé
+```
+
+Ainsi :
+
+```text
+25/02/2026
+↓
+Échéance détectée
+↓
+Alerte
+↓
+Décision administrative
+↓
+Avenant / renouvellement
+↓
+Validation
+↓
+Nouvelle période
+```
+
+Cela évite une automatisation dangereuse d'une décision administrative.
+
+---
+
+# 60. Paramétrage
+
+L'administrateur aura accès à :
+
+### Paramètres généraux
+
+* nom de l'organisme ;
+* logo ;
+* devise ;
+* langue.
+
+### Paramètres contrats
+
+* durée par défaut ;
+* seuils d'alerte.
+
+### Paramètres majorations
+
+* pourcentage ;
+* périodicité ;
+* mode de calcul.
+
+### Notifications
+
+* email activé/désactivé ;
+* fréquence ;
+* destinataires.
+
+---
+
+# 61. Technologies recommandées
+
+## Frontend
+
+```text
+React
+TypeScript
+Tailwind CSS
+React Router
+TanStack Query
+React Hook Form
+Zod
+```
+
+## Backend
+
+```text
+Spring Boot
+Java
+Spring Security
+Spring Data JPA
+Hibernate
+Bean Validation
+```
+
+## Base
+
+```text
+PostgreSQL
+```
+
+## Documents
+
+Selon l'infrastructure :
+
+```text
+MinIO / stockage objet
+ou
+stockage serveur sécurisé
+```
+
+## Déploiement
+
+```text
+Docker
+Docker Compose
+
+Nginx
+Backend Spring Boot
+Frontend React
+PostgreSQL
+Stockage documents
+```
+
+---
+
+# 62. Architecture technique
+
+```text
+                 Navigateur
+                     │
+                     ▼
+               React / TS
+                     │
+                 HTTPS
+                     │
+                     ▼
+              Spring Boot API
+                     │
+          ┌──────────┼──────────┐
+          │          │          │
+          ▼          ▼          ▼
+      PostgreSQL   Storage    Email
+          │          │
+          ▼          ▼
+       Données     Documents
+```
+
+---
+
+# 63. API — conventions
+
+Toutes les réponses API doivent utiliser un format homogène.
+
+Exemple :
+
+```json
+{
+  "success": true,
+  "data": {},
+  "message": null
+}
+```
+
+Erreur :
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "Le numéro de contrat existe déjà."
+}
+```
+
+Pagination :
+
+```http
+GET /api/contracts?page=0&size=20
+```
+
+---
+
+# 64. Performance
+
+Objectifs :
+
+* chargement dashboard < 3 secondes dans des conditions normales ;
+* recherche < 1 seconde sur les données indexées ;
+* pagination obligatoire pour les grandes listes ;
+* index PostgreSQL sur :
+
+  * numéro contrat ;
+  * région ;
+  * délégation ;
+  * propriétaire ;
+  * date fin ;
+  * statut.
+
+---
+
+# 65. Tests
+
+Le projet devra comporter :
+
+## Tests unitaires
+
+Tester :
+
+* calcul du loyer annuel ;
+* calcul des majorations ;
+* calcul des échéances ;
+* changement de statut ;
+* règles d'alerte.
+
+## Tests API
+
+Tester :
+
+* authentification ;
+* permissions ;
+* CRUD ;
+* import ;
+* export.
+
+## Tests fonctionnels
+
+Scénario :
+
+```text
+Créer contrat
+→ calcul date fin
+→ calcul loyer annuel
+→ créer majoration
+→ vérifier historique
+→ générer alerte
+→ renouveler
+→ vérifier nouvelle période
+```
+
+---
+
+# 66. MVP — première version
+
+Pour une première livraison, je recommande de développer :
+
+### Phase 1
+
+* authentification ;
+* utilisateurs/rôles ;
+* dashboard ;
+* contrats ;
+* propriétaires ;
+* régions ;
+* délégations ;
+* calculs automatiques ;
+* échéances ;
+* recherche ;
+* import Excel.
+
+### Phase 2
+
+* avenants ;
+* majorations ;
+* documents ;
+* notifications ;
+* historique ;
+* rapports.
+
+### Phase 3
+
+* emails automatiques ;
+* validation électronique ;
+* statistiques avancées ;
+* automatisation des workflows ;
+* amélioration mobile.
+
+---
+
+# 67. Critères d'acceptation
+
+L'application sera considérée comme fonctionnelle lorsque :
+
+### Contrat
+
+Un utilisateur autorisé peut créer un contrat et obtenir automatiquement :
+
+* date de fin ;
+* loyer annuel ;
+* prochaine échéance ;
+* statut.
+
+### Majoration
+
+L'utilisateur peut enregistrer une majoration et le système :
+
+* calcule le nouveau montant ;
+* conserve l'ancien ;
+* crée l'historique ;
+* met à jour le montant actuel.
+
+### Échéance
+
+Le système détecte automatiquement les contrats proches de l'échéance.
+
+### Dashboard
+
+Les indicateurs correspondent aux données réelles de la base.
+
+### Import
+
+Le fichier Excel peut être importé avec :
+
+* prévisualisation ;
+* détection des erreurs ;
+* détection des doublons ;
+* validation avant insertion.
+
+### Sécurité
+
+Un utilisateur ne peut pas exécuter une opération interdite par son rôle.
+
+---
+
+# 68. Résultat attendu
+
+À terme, l'application doit remplacer la logique actuelle :
+
+```text
+Excel
+   ↓
+Recherche manuelle
+   ↓
+Calcul manuel
+   ↓
+Vérification manuelle
+   ↓
+Risque d'erreur
+```
+
+par :
+
+```text
+              APPLICATION
+                   │
+          ┌────────┴────────┐
+          │                 │
+       DONNÉES           AUTOMATISATION
+          │                 │
+       Contrats          Échéances
+       Propriétaires     Majorations
+       Avenants          Notifications
+       Documents         Calculs
+          │                 │
+          └────────┬────────┘
+                   ↓
+                DASHBOARD
+                   ↓
+            DÉCISION / ACTION
+```
+
+---
+
+# 69. Vision finale
+
+L'application doit devenir **le référentiel unique de gestion des locations**.
+
+Un responsable doit pouvoir ouvrir le dashboard et répondre immédiatement à des questions comme :
+
+* Combien avons-nous de contrats ?
+* Combien dépensons-nous chaque mois ?
+* Combien dépensons-nous par an ?
+* Quels contrats arrivent à échéance ?
+* Quels contrats sont déjà expirés ?
+* Quels loyers ont été majorés ?
+* Quel était le montant avant/après majoration ?
+* Quels contrats appartiennent à telle délégation ?
+* Quels documents sont disponibles ?
+* Quels contrats nécessitent une intervention ?
+* Qui a modifié une information ?
+* Quand cette modification a-t-elle été effectuée ?
+
+L'objectif final n'est donc pas simplement de **faire un Excel avec une interface web**, mais de construire un véritable **système de gestion des contrats de location avec automatisation, historique, alertes et pilotage par dashboard**.
