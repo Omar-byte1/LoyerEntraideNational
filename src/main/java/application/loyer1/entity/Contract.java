@@ -45,7 +45,7 @@ public class Contract {
     private Region region;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "delegation_id", nullable = false)
+    @JoinColumn(name = "delegation_id", nullable = true)
     private Delegation delegation;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -141,9 +141,18 @@ public class Contract {
     @Builder.Default
     private ContractStatus status = ContractStatus.ACTIF;
 
-    // --- Observations ---
+    // --- Observations et Autres ---
     @Column(columnDefinition = "TEXT")
     private String observations;
+
+    @Column(name = "evaluation_pv", length = 255)
+    private String evaluationPv;
+
+    @Column(name = "defined_increases", length = 255)
+    private String definedIncreases;
+
+    @Column(name = "activity_change", length = 255)
+    private String activityChange;
 
     // --- Relations ---
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -29,7 +29,7 @@ function ContractModal({ open, onClose, onSave, contract: initial, regions, owne
     contractNumber: '', startDate: '', endDate: '', durationMonths: '',
     address: '', landReference: '', propertyType: '', contractType: '',
     initialMonthlyRent: '', currentMonthlyRent: '', charges: '', status: 'ACTIF',
-    observations: '',
+    observations: '', evaluationPv: '', definedIncreases: '', activityChange: '',
     // texte affiché dans l'input (pour datalist)
     regionText: '', delegationText: '', ownerText: '',
     // objets résolus
@@ -66,6 +66,9 @@ function ContractModal({ open, onClose, onSave, contract: initial, regions, owne
         charges: initial.charges || '',
         status: initial.status || 'ACTIF',
         observations: initial.observations || '',
+        evaluationPv: initial.evaluationPv || '',
+        definedIncreases: initial.definedIncreases || '',
+        activityChange: initial.activityChange || '',
         regionText: initial.region?.name || '',
         delegationText: initial.delegation?.name || '',
         ownerText: initial.owner?.name || '',
@@ -79,6 +82,33 @@ function ContractModal({ open, onClose, onSave, contract: initial, regions, owne
       setDelegations([]);
     }
   }, [initial, open]);
+
+  // Calcul automatique du loyer actuel
+  // Règle : tous les 36 mois (3 ans) de durée, on ajoute 10% du loyer INITIAL
+  // Exemple : 200 DA → 36 mois = 220 | 72 mois = 240 | 108 mois = 260
+  useEffect(() => {
+    const initialRent = parseFloat(form.initialMonthlyRent);
+    const months      = parseInt(form.durationMonths);
+
+    if (!isNaN(initialRent) && initialRent > 0) {
+      if (!isNaN(months) && months > 0) {
+        // Nombre de périodes de 3 ans complètes dans la durée du contrat
+        const periods = Math.floor(months / 36);
+        // Intérêts simples : chaque période ajoute 10% du loyer INITIAL
+        const calculatedRent = initialRent + (initialRent * 0.10 * periods);
+        const calculatedVal  = calculatedRent.toFixed(2);
+        if (form.currentMonthlyRent !== calculatedVal) {
+          setForm(f => ({ ...f, currentMonthlyRent: calculatedVal }));
+        }
+      } else {
+        // Pas de durée renseignée → loyer actuel = loyer initial
+        const initStr = String(initialRent);
+        if (form.currentMonthlyRent !== initStr) {
+          setForm(f => ({ ...f, currentMonthlyRent: initStr }));
+        }
+      }
+    }
+  }, [form.initialMonthlyRent, form.durationMonths]);
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
@@ -130,18 +160,33 @@ function ContractModal({ open, onClose, onSave, contract: initial, regions, owne
   if (!open) return null;
 
   // Helper input simple
-  const inp = (label, key, type = 'text', required = false, placeholder = '') => (
-    <div className="form-group">
-      <label className="form-label">{label}{required && ' *'}</label>
-      <input
-        type={type} className="form-control"
-        value={form[key]}
-        onChange={e => set(key, e.target.value)}
-        required={required}
-        placeholder={placeholder}
-      />
-    </div>
-  );
+  const inp = (label, key, type = 'text', required = false, placeholder = '') => {
+    // Pour les dates, on utilise un input de type date natif mais on préfixe le label
+    // Le navigateur affiche dans le format local, le stockage interne reste YYYY-MM-DD
+    return (
+      <div className="form-group">
+        <label className="form-label">{label}{required && ' *'}</label>
+        <input
+          type={type} className="form-control"
+          value={form[key]}
+          onChange={e => set(key, e.target.value)}
+          required={required}
+          placeholder={type === 'date' ? 'JJ/MM/AAAA' : placeholder}
+          lang="fr"
+        />
+        {type === 'date' && form[key] && (
+          <span style={{ fontSize: '0.72rem', color: 'var(--color-gold)', marginTop: 2, display: 'block' }}>
+            ℹ️ 
+            {(() => {
+              const d = new Date(form[key]);
+              if (isNaN(d.getTime())) return '';
+              return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+            })()}
+          </span>
+        )}
+      </div>
+    );
+  };
 
   // Helper input avec datalist (saisie libre + suggestions)
   const datalistInp = (label, key, listId, options, onChange, required = false, placeholder = '') => (
@@ -215,6 +260,8 @@ function ContractModal({ open, onClose, onSave, contract: initial, regions, owne
               {inp(t.contracts.form.address, 'address', 'text', false, 'Adresse complète')}
               {inp(t.contracts.col.landReference, 'landReference', 'text', false, 'Référence foncière')}
               {inp(t.contracts.form.contractType, 'contractType', 'text', false, 'Location, Bail...')}
+              {inp("PV d'évaluation", 'evaluationPv', 'text', false, 'Date première expertise')}
+              {inp("Changement d'activité", 'activityChange', 'text', false, "Description du changement")}
             </div>
 
             <div className="divider" />
@@ -237,8 +284,63 @@ function ContractModal({ open, onClose, onSave, contract: initial, regions, owne
             </p>
             <div className="form-grid">
               {inp(t.contracts.form.initialMonthlyRent, 'initialMonthlyRent', 'number', true, '0.00')}
-              {inp(t.contracts.form.currentMonthlyRent, 'currentMonthlyRent', 'number', true, '0.00')}
-              {inp(t.contracts.form.charges, 'charges', 'number', false, '0.00')}
+
+              {/* Loyer actuel — calculé automatiquement */}
+              <div className="form-group">
+                <label className="form-label">
+                  {t.contracts.form.currentMonthlyRent} *
+                  <span style={{
+                    marginLeft: 6, fontSize: '0.65rem', color: 'var(--color-gold)',
+                    background: 'rgba(245,158,11,0.12)', padding: '1px 6px',
+                    borderRadius: 4, fontWeight: 600, letterSpacing: 0
+                  }}>AUTO</span>
+                </label>
+                <input
+                  type="number" className="form-control"
+                  value={form.currentMonthlyRent}
+                  onChange={e => set('currentMonthlyRent', e.target.value)}
+                  required
+                  placeholder="0.00"
+                />
+                {form.initialMonthlyRent && form.durationMonths && (
+                  <span style={{
+                    fontSize: '0.7rem', color: 'var(--color-text-muted)',
+                    marginTop: 3, display: 'block', lineHeight: 1.4
+                  }}>
+                    📐 {parseFloat(form.initialMonthlyRent).toFixed(0)} DA
+                    {' + '}{Math.floor(parseInt(form.durationMonths) / 36)}
+                    {' × 10% = '}
+                    <strong style={{ color: 'var(--color-gold)' }}>
+                      {(parseFloat(form.initialMonthlyRent) +
+                        parseFloat(form.initialMonthlyRent) * 0.10 *
+                        Math.floor(parseInt(form.durationMonths) / 36)
+                      ).toFixed(2)} DA
+                    </strong>
+                  </span>
+                )}
+              </div>
+              {/* Charges en pourcentage */}
+              <div className="form-group">
+                <label className="form-label">{t.contracts.form.charges} (%)</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={form.charges}
+                    onChange={e => set('charges', e.target.value)}
+                    placeholder="0"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    style={{ paddingRight: '2.2rem' }}
+                  />
+                  <span style={{
+                    position: 'absolute', right: '0.75rem', top: '50%',
+                    transform: 'translateY(-50%)', color: 'var(--color-gold)',
+                    fontWeight: 700, pointerEvents: 'none'
+                  }}>%</span>
+                </div>
+              </div>
 
               {/* Statut — saisie libre + suggestions */}
               <div className="form-group">
@@ -256,6 +358,8 @@ function ContractModal({ open, onClose, onSave, contract: initial, regions, owne
                   ))}
                 </datalist>
               </div>
+              
+              {inp("Augmentations définies", 'definedIncreases', 'text', false, 'Détails des augmentations')}
             </div>
 
             <div className="divider" />
@@ -514,10 +618,21 @@ export default function ContractsPage() {
                     <td className="text-muted">{c.owner?.address || '—'}</td>
                     <td>{c.landReference || '—'}</td>
                     <td>{c.address || '—'}</td>
-                    <td className="text-muted">—</td>
+                    <td className="text-muted">{c.evaluationPv || '—'}</td>
                     <td>{c.propertyType || '—'}</td>
                     <td>{c.contractType || '—'}</td>
-                    <td style={{ color: 'var(--color-info)' }}>{c.startDate || '—'}</td>
+                    <td style={{ color: 'var(--color-info)' }}>
+                      {c.startDate
+                        ? (() => {
+                            const d = new Date(c.startDate);
+                            if (isNaN(d.getTime())) return c.startDate;
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            return `${dd}/${mm}/${yyyy}`;
+                          })()
+                        : '—'}
+                    </td>
                     <td className="text-muted">
                       {c.amendments?.length > 0
                         ? c.amendments[c.amendments.length - 1].number
@@ -526,12 +641,8 @@ export default function ContractsPage() {
                     <td style={{ color: 'var(--color-gold)', fontWeight: 700 }}>
                       {fmt(c.currentMonthlyRent)}
                     </td>
-                    <td>
-                      {c.increasePercentage
-                        ? <span className="badge badge-gold">{c.increasePercentage}%</span>
-                        : '—'}
-                    </td>
-                    <td className="text-muted">—</td>
+                    <td className="text-muted">{c.definedIncreases || '—'}</td>
+                    <td className="text-muted">{c.activityChange || '—'}</td>
                     <td className="text-muted text-xs" style={{ maxWidth: '120px' }}>
                       {c.observations ? c.observations.slice(0, 40) + (c.observations.length > 40 ? '…' : '') : '—'}
                     </td>
