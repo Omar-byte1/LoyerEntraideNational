@@ -29,18 +29,24 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [expiring, setExpiring] = useState([]);
+  const [expired, setExpired] = useState([]);
+  const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     async function load() {
       try {
-        const [dashRes, expRes] = await Promise.all([
+        const [dashRes, expRes, expiredRes, recentRes] = await Promise.all([
           dashboardApi.getSummary(),
           contractsApi.getExpiring(30),
+          contractsApi.getExpired(),
+          contractsApi.getRecent(),
         ]);
         setStats(dashRes.data || dashRes);
         setExpiring(expRes.data || []);
+        setExpired(expiredRes.data || []);
+        setRecent(recentRes.data || []);
       } catch (err) {
         setError(t.common.error);
       } finally {
@@ -102,6 +108,54 @@ export default function DashboardPage() {
           ))}
         </div>
 
+        {/* Contrats ajoutés récemment */}
+        <div className="card mt-4" id="recent-contracts-card">
+          <div className="card-header">
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>🆕</span>
+              Derniers contrats ajoutés
+            </h3>
+            <span className="badge badge-success">{recent.length}</span>
+          </div>
+          {recent.length === 0 ? (
+            <div className="empty-state">
+              <span className="empty-state-icon">✅</span>
+              <span className="empty-state-text">
+                Aucun contrat
+              </span>
+            </div>
+          ) : (
+            <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>{t.contracts.col.contractNumber}</th>
+                    <th>{t.contracts.col.ownerName}</th>
+                    <th>{t.contracts.col.region}</th>
+                    <th>Date de début</th>
+                    <th>{t.contracts.col.endDate}</th>
+                    <th>{t.contracts.col.status}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recent.map((c) => (
+                    <tr key={c.id}>
+                      <td className="text-gold font-semibold">{c.contractNumber}</td>
+                      <td>{c.owner?.name || '—'}</td>
+                      <td>{c.region?.name || '—'}</td>
+                      <td>{c.startDate || '—'}</td>
+                      <td className="text-danger">{c.endDate || '—'}</td>
+                      <td>
+                        <StatusBadge status={c.status} t={t} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         {/* Contrats expirant bientôt */}
         <div className="card" id="expiring-contracts-card">
           <div className="card-header">
@@ -115,7 +169,7 @@ export default function DashboardPage() {
             <div className="empty-state">
               <span className="empty-state-icon">✅</span>
               <span className="empty-state-text">
-                {t.common.noData}
+                Aucun contrat n'expire dans les 30 prochains jours
               </span>
             </div>
           ) : (
@@ -135,6 +189,58 @@ export default function DashboardPage() {
                   {expiring.map((c) => (
                     <tr key={c.id}>
                       <td className="text-gold font-semibold">{c.contractNumber}</td>
+                      <td>{c.owner?.name || '—'}</td>
+                      <td>{c.region?.name || '—'}</td>
+                      <td className="text-danger">{c.endDate || '—'}</td>
+                      <td>
+                        {c.currentMonthlyRent
+                          ? new Intl.NumberFormat('fr-MA').format(c.currentMonthlyRent) + ' ' + t.common.currency
+                          : '—'}
+                      </td>
+                      <td>
+                        <StatusBadge status={c.status} t={t} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Contrats déjà expirés */}
+        <div className="card mt-4" id="expired-contracts-card">
+          <div className="card-header">
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>⚠️</span>
+              Contrats déjà expirés
+            </h3>
+            <span className="badge badge-danger">{expired.length}</span>
+          </div>
+          {expired.length === 0 ? (
+            <div className="empty-state">
+              <span className="empty-state-icon">✅</span>
+              <span className="empty-state-text">
+                Aucun contrat expiré
+              </span>
+            </div>
+          ) : (
+            <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>{t.contracts.col.contractNumber}</th>
+                    <th>{t.contracts.col.ownerName}</th>
+                    <th>{t.contracts.col.region}</th>
+                    <th>{t.contracts.col.endDate}</th>
+                    <th>{t.contracts.col.currentMonthlyRent}</th>
+                    <th>{t.contracts.col.status}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expired.map((c) => (
+                    <tr key={c.id}>
+                      <td className="text-danger font-semibold">{c.contractNumber}</td>
                       <td>{c.owner?.name || '—'}</td>
                       <td>{c.region?.name || '—'}</td>
                       <td className="text-danger">{c.endDate || '—'}</td>

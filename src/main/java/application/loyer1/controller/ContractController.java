@@ -83,4 +83,9 @@ public class ContractController {
     public ResponseEntity<ApiResponse<List<Contract>>> expired() {
         return ResponseEntity.ok(ApiResponse.ok(contractService.findExpired()));
     }
+
+    @GetMapping("/recent")
+    public ResponseEntity<ApiResponse<List<Contract>>> recent() {
+        return ResponseEntity.ok(ApiResponse.ok(contractService.findRecent()));
+    }
 }

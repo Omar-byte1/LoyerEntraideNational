@@ -50,22 +50,37 @@ public class NotificationController {
                 notifications.add(notif);
             }
 
-            // 2. Contrats en attente de majoration (prochaine date de majoration dépassée)
+            // 2. Contrats DÉJÀ EXPIRÉS
             List<Contract> expired = contractService.findExpired();
             for (Contract c : expired) {
+                Map<String, Object> notif = new LinkedHashMap<>();
+                notif.put("id", "EXPD-" + c.getId());
+                notif.put("type", "EXPIRATION"); // ou "ALERTE"
+                notif.put("read", false);
+                notif.put("contractId", c.getId());
+                notif.put("contractNumber", c.getContractNumber());
+                String endDateStr = c.getEndDate() != null ? c.getEndDate().format(FMT) : "—";
+                notif.put("message",
+                    "⚠️ Contrat " + c.getContractNumber()
+                    + " est DÉJÀ EXPIRÉ depuis le " + endDateStr
+                    + (c.getOwner() != null ? " — " + c.getOwner().getName() : ""));
+                notif.put("date", c.getEndDate() != null ? c.getEndDate().toString() : null);
+                notifications.add(notif);
+                
+                // Majoration logic (si gérée)
                 if (c.getNextIncreaseDate() != null
                         && !c.getNextIncreaseDate().isAfter(LocalDate.now())) {
-                    Map<String, Object> notif = new LinkedHashMap<>();
-                    notif.put("id", "MAJ-" + c.getId());
-                    notif.put("type", "MAJORATION");
-                    notif.put("read", false);
-                    notif.put("contractId", c.getId());
-                    notif.put("contractNumber", c.getContractNumber());
-                    notif.put("message",
+                    Map<String, Object> majNotif = new LinkedHashMap<>();
+                    majNotif.put("id", "MAJ-" + c.getId());
+                    majNotif.put("type", "MAJORATION");
+                    majNotif.put("read", false);
+                    majNotif.put("contractId", c.getId());
+                    majNotif.put("contractNumber", c.getContractNumber());
+                    majNotif.put("message",
                         "📈 Majoration due pour contrat " + c.getContractNumber()
                         + " depuis le " + c.getNextIncreaseDate().format(FMT));
-                    notif.put("date", c.getNextIncreaseDate().toString());
-                    notifications.add(notif);
+                    majNotif.put("date", c.getNextIncreaseDate().toString());
+                    notifications.add(majNotif);
                 }
             }
 

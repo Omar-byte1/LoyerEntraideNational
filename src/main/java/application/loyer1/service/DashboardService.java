@@ -27,8 +27,8 @@ public class DashboardService {
         return DashboardDTO.builder()
                 // Contrats
                 .totalContracts(contractRepository.count())
-                .activeContracts(contractRepository.countByStatus(ContractStatus.ACTIF))
-                .expiredContracts(contractRepository.countByStatus(ContractStatus.EXPIRE))
+                .activeContracts(contractRepository.countByStatus(ContractStatus.ACTIF) - contractRepository.findExpired(now).size())
+                .expiredContracts(contractRepository.countByStatus(ContractStatus.EXPIRE) + contractRepository.findExpired(now).size())
                 .expiringIn30Days(contractRepository.findExpiringBetween(now, now.plusDays(30)).size())
                 .expiringIn60Days(contractRepository.findExpiringBetween(now, now.plusDays(60)).size())
                 .expiringIn90Days(contractRepository.findExpiringBetween(now, now.plusDays(90)).size())

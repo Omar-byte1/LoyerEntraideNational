@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * Service de gestion des contrats.
@@ -110,17 +111,25 @@ public class ContractService {
 
     public List<Contract> findExpiring(int days) {
         LocalDate limit = LocalDate.now().plusDays(days);
-        return contractRepository.findExpiringBefore(limit);
+        return contractRepository.findExpiringBetween(LocalDate.now(), limit);
     }
 
     public List<Contract> findExpired() {
         return contractRepository.findExpired(LocalDate.now());
     }
 
+    public List<Contract> findRecent() {
+        return contractRepository.findTop5ByOrderByIdDesc();
+    }
+
+
+
     /**
      * R06 — Met à jour automatiquement les statuts des contrats expirés.
+     * Tourne tous les jours à minuit.
      */
     @Transactional
+    @Scheduled(cron = "0 0 0 * * *")
     public void updateExpiredStatuses() {
         List<Contract> expired = contractRepository.findExpired(LocalDate.now());
         for (Contract contract : expired) {

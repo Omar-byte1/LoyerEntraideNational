@@ -17,6 +17,9 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
 
     Optional<Contract> findByContractNumber(String contractNumber);
     boolean existsByContractNumber(String contractNumber);
+    
+    // --- Récents ---
+    List<Contract> findTop5ByOrderByIdDesc();
 
     // --- Filtres par statut ---
     List<Contract> findByStatus(ContractStatus status);

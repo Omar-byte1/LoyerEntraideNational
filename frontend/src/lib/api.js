@@ -50,6 +50,10 @@ export const contractsApi = {
     const res = await axiosInstance.get('/api/contracts/expired');
     return res.data;
   },
+  getRecent: async () => {
+    const res = await axiosInstance.get('/api/contracts/recent');
+    return res.data;
+  },
   getByRegion: async (regionId, page = 0, size = 20) => {
     const res = await axiosInstance.get(`/api/contracts/region/${regionId}`, {
       params: { page, size },
