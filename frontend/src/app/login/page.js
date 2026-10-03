@@ -21,7 +21,11 @@ export default function LoginPage() {
       await login(email, password);
       router.push('/dashboard');
     } catch (err) {
-      setError(t.auth.loginError);
+      if (err.response?.status === 429) {
+        setError(err.response.data.error || 'Trop de tentatives de connexion. Veuillez réessayer plus tard.');
+      } else {
+        setError(t.auth.loginError);
+      }
     } finally {
       setLoading(false);
     }
