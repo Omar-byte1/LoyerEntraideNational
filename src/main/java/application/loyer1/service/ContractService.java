@@ -120,7 +120,7 @@ public class ContractService {
     }
 
     public List<Contract> findRecent() {
-        return contractRepository.findTop5ByOrderByIdDesc();
+        return contractRepository.findTop5ByOrderByIdAsc();
     }
 
 

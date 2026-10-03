@@ -14,7 +14,7 @@ export const authApi = {
 
 // ─── Contrats ─────────────────────────────────────────────────────────────────
 export const contractsApi = {
-  getAll: async (page = 0, size = 20, sort = 'id,desc') => {
+  getAll: async (page = 0, size = 20, sort = 'id,asc') => {
     const res = await axiosInstance.get('/api/contracts', {
       params: { page, size, sort },
     });
