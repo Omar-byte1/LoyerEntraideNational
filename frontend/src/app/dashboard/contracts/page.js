@@ -285,7 +285,7 @@ function ContractModal({ open, onClose, onSave, contract: initial, regions, owne
             <div className="form-grid">
               {inp(t.contracts.form.initialMonthlyRent, 'initialMonthlyRent', 'number', true, '0.00')}
 
-              {/* Loyer actuel — calculé automatiquement */}
+              {/* Loyer renouvelable — calculé automatiquement */}
               <div className="form-group">
                 <label className="form-label">
                   {t.contracts.form.currentMonthlyRent} *

@@ -195,11 +195,11 @@ public class Contract {
 
     /**
      * R01 — Calcul automatique du loyer annuel.
-     * annuel = mensuel × 12
+     * annuel = loyer INITIAL × 12 (pas le renouvelable)
      */
     public void calculateAnnualRent() {
-        if (currentMonthlyRent != null) {
-            this.annualRent = currentMonthlyRent.multiply(BigDecimal.valueOf(12));
+        if (initialMonthlyRent != null) {
+            this.annualRent = initialMonthlyRent.multiply(BigDecimal.valueOf(12));
         }
     }
 

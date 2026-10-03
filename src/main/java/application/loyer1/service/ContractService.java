@@ -74,6 +74,7 @@ public class ContractService {
         contract.setDurationMonths(updated.getDurationMonths());
         contract.setContractType(updated.getContractType());
         contract.setConditions(updated.getConditions());
+        contract.setInitialMonthlyRent(updated.getInitialMonthlyRent());
         contract.setCurrentMonthlyRent(updated.getCurrentMonthlyRent());
         contract.setCharges(updated.getCharges());
         contract.setOtherCharges(updated.getOtherCharges());

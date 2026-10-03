@@ -67,7 +67,7 @@ const ar = {
       startDate: 'بداية العقار',
       lastAmendment: 'أخر ملحق',
       initialMonthlyRent: 'الدسومة الكرائية الأولية',
-      currentMonthlyRent: 'الدسومة الكرائية الحالية',
+      currentMonthlyRent: 'الدسومة الكرائية القابلة للتجديد',
       rentIncreases: 'الزيادات المحددة',
       activityChange: 'تغيير النشاط',
       observations: 'ملاحظات',

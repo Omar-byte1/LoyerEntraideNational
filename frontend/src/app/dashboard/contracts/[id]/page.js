@@ -131,7 +131,7 @@ export default function ContractDetailPage() {
               <InfoRow label={t.contracts.form.durationMonths} value={contract.durationMonths ? `${contract.durationMonths} mois` : null} />
               <InfoRow label={t.contracts.form.initialMonthlyRent} value={fmt(contract.initialMonthlyRent)} />
               <InfoRow label={t.contracts.form.currentMonthlyRent} value={fmt(contract.currentMonthlyRent)} highlight />
-              <InfoRow label="Loyer annuel" value={fmt(contract.annualRent)} />
+              <InfoRow label={`Loyer annuel (basé sur l'initial)`} value={fmt(contract.annualRent)} />
               <InfoRow label={t.contracts.form.charges} value={fmt(contract.charges)} />
               <InfoRow label="Autres charges" value={fmt(contract.otherCharges)} />
             </div>
