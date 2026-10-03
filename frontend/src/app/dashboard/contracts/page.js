@@ -5,6 +5,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import { contractsApi, regionsApi, delegationsApi, ownersApi } from '@/lib/api';
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // ─── Badge statut ──────────────────────────────────────────────────────────
 function StatusBadge({ status, t }) {
@@ -505,6 +508,67 @@ export default function ContractsPage() {
     } catch { alert(t.common.error); }
   };
 
+  // Exportation Excel
+  const handleExportExcel = async () => {
+    try {
+      const res = await contractsApi.export();
+      const data = res.data || res;
+      
+      const worksheet = XLSX.utils.json_to_sheet(data.map(c => ({
+        'N° Contrat': c.contractNumber,
+        'Région': c.region?.name || '',
+        'Délégation': c.delegation?.name || '',
+        'Nom du propriétaire': c.owner?.name || '',
+        'Type de contrat': c.contractType || '',
+        'Date de début': c.startDate || '',
+        'Date de fin': c.endDate || '',
+        'Loyer initial': c.initialMonthlyRent || 0,
+        'Loyer renouvelable': c.currentMonthlyRent || 0,
+        'Loyer annuel': c.annualRent || 0,
+        'Statut': c.status || ''
+      })));
+      
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Contrats");
+      XLSX.writeFile(workbook, "Contrats_Location.xlsx");
+    } catch (e) {
+      console.error(e);
+      alert("Erreur lors de l'exportation Excel");
+    }
+  };
+
+  // Exportation PDF
+  const handleExportPDF = async () => {
+    try {
+      const res = await contractsApi.export();
+      const data = res.data || res;
+      
+      const doc = new jsPDF('landscape');
+      doc.text("Liste des Contrats de Location", 14, 15);
+      
+      const tableData = data.map(c => [
+        c.contractNumber || '',
+        c.region?.name || '',
+        c.owner?.name || '',
+        c.startDate || '',
+        c.endDate || '',
+        c.initialMonthlyRent ? c.initialMonthlyRent + ' MAD' : '-',
+        c.status || ''
+      ]);
+      
+      autoTable(doc, {
+        head: [['N°', 'Région', 'Propriétaire', 'Début', 'Fin', 'Loyer Init', 'Statut']],
+        body: tableData,
+        startY: 20,
+      });
+      
+      doc.save("Contrats_Location.pdf");
+    } catch (e) {
+      console.error(e);
+      alert("Erreur lors de l'exportation PDF");
+    }
+  };
+
   // Formater montant
   const fmt = (val) => {
     if (!val && val !== 0) return '—';
@@ -537,6 +601,14 @@ export default function ContractsPage() {
                 onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
+            
+            <button className="btn btn-secondary" onClick={handleExportExcel} title="Exporter en Excel">
+              📊 Excel
+            </button>
+            <button className="btn btn-secondary" onClick={handleExportPDF} title="Exporter en PDF">
+              📄 PDF
+            </button>
+
             <button
               className="btn btn-primary"
               onClick={() => { setEditingContract(null); setModalOpen(true); }}

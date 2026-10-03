@@ -88,4 +88,9 @@ public class ContractController {
     public ResponseEntity<ApiResponse<List<Contract>>> recent() {
         return ResponseEntity.ok(ApiResponse.ok(contractService.findRecent()));
     }
+
+    @GetMapping("/export")
+    public ResponseEntity<ApiResponse<List<Contract>>> exportAll() {
+        return ResponseEntity.ok(ApiResponse.ok(contractService.findAllForExport()));
+    }
 }

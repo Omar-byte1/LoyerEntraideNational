@@ -27,6 +27,10 @@ public class ContractService {
         return contractRepository.findAll(pageable);
     }
 
+    public List<Contract> findAllForExport() {
+        return contractRepository.findAll();
+    }
+
     public Contract findById(Long id) {
         return contractRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Contrat non trouvé : " + id));

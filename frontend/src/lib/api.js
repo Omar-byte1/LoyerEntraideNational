@@ -66,6 +66,10 @@ export const contractsApi = {
     });
     return res.data;
   },
+  export: async () => {
+    const res = await axiosInstance.get('/api/contracts/export');
+    return res.data;
+  },
 };
 
 // ─── Propriétaires ────────────────────────────────────────────────────────────
