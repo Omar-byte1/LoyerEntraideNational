@@ -70,6 +70,16 @@ export const contractsApi = {
     const res = await axiosInstance.get('/api/contracts/export');
     return res.data;
   },
+  getHistory: async (page = 0, size = 20) => {
+    const res = await axiosInstance.get('/api/contracts/history', {
+      params: { page, size },
+    });
+    return res.data;
+  },
+  recover: async (id) => {
+    const res = await axiosInstance.put(`/api/contracts/${id}/recover`);
+    return res.data;
+  },
 };
 
 // ─── Propriétaires ────────────────────────────────────────────────────────────

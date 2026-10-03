@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { key: 'regions',     icon: '🗺️', href: '/dashboard/regions' },
   { key: 'delegations', icon: '🏛️', href: '/dashboard/delegations' },
   { key: 'notifications', icon: '🔔', href: '/dashboard/notifications' },
+  { key: 'history',       icon: '🗑️', href: '/dashboard/history' },
 ];
 
 const ADMIN_ITEMS = [

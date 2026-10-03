@@ -8,6 +8,7 @@ const ar = {
     regions: 'الجهات',
     delegations: 'الأقاليم',
     notifications: 'الإشعارات',
+    history: 'الأرشيف',
     users: 'المستخدمون',
     logout: 'تسجيل الخروج',
     settings: 'الإعدادات',

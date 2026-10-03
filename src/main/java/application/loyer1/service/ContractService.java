@@ -24,11 +24,11 @@ public class ContractService {
     private final ContractRepository contractRepository;
 
     public Page<Contract> findAll(Pageable pageable) {
-        return contractRepository.findAll(pageable);
+        return contractRepository.findByDeletedFalse(pageable);
     }
 
     public List<Contract> findAllForExport() {
-        return contractRepository.findAll();
+        return contractRepository.findByDeletedFalse();
     }
 
     public Contract findById(Long id) {
@@ -41,7 +41,7 @@ public class ContractService {
      */
     @Transactional
     public Contract create(Contract contract) {
-        if (contractRepository.existsByContractNumber(contract.getContractNumber())) {
+        if (contractRepository.existsByContractNumberAndDeletedFalse(contract.getContractNumber())) {
             throw new RuntimeException("Le numéro de contrat existe déjà : " + contract.getContractNumber());
         }
 
@@ -94,8 +94,25 @@ public class ContractService {
         return contractRepository.save(contract);
     }
 
+    @Transactional
     public void delete(Long id) {
-        contractRepository.deleteById(id);
+        Contract contract = findById(id);
+        contract.setDeleted(true);
+        contractRepository.save(contract);
+    }
+
+    @Transactional
+    public void recover(Long id) {
+        Contract contract = findById(id);
+        if (contractRepository.existsByContractNumberAndDeletedFalse(contract.getContractNumber())) {
+            throw new RuntimeException("Impossible de restaurer : un contrat actif avec ce numéro existe déjà.");
+        }
+        contract.setDeleted(false);
+        contractRepository.save(contract);
+    }
+
+    public Page<Contract> findHistory(Pageable pageable) {
+        return contractRepository.findByDeletedTrue(pageable);
     }
 
     // --- Recherche ---
@@ -105,11 +122,11 @@ public class ContractService {
     }
 
     public Page<Contract> findByRegion(Long regionId, Pageable pageable) {
-        return contractRepository.findByRegionId(regionId, pageable);
+        return contractRepository.findByRegionIdAndDeletedFalse(regionId, pageable);
     }
 
     public Page<Contract> findByDelegation(Long delegationId, Pageable pageable) {
-        return contractRepository.findByDelegationId(delegationId, pageable);
+        return contractRepository.findByDelegationIdAndDeletedFalse(delegationId, pageable);
     }
 
     // --- Échéances ---
@@ -124,7 +141,7 @@ public class ContractService {
     }
 
     public List<Contract> findRecent() {
-        return contractRepository.findTop5ByOrderByIdAsc();
+        return contractRepository.findTop5ByDeletedFalseOrderByIdAsc();
     }
 
 

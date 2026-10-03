@@ -8,6 +8,7 @@ const fr = {
     regions: 'Régions',
     delegations: 'Délégations',
     notifications: 'Notifications',
+    history: 'Historique',
     users: 'Utilisateurs',
     logout: 'Déconnexion',
     settings: 'Paramètres',

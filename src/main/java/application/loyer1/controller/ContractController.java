@@ -93,4 +93,15 @@ public class ContractController {
     public ResponseEntity<ApiResponse<List<Contract>>> exportAll() {
         return ResponseEntity.ok(ApiResponse.ok(contractService.findAllForExport()));
     }
+
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<Page<Contract>>> history(Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok(contractService.findHistory(pageable)));
+    }
+
+    @PutMapping("/{id}/recover")
+    public ResponseEntity<ApiResponse<Void>> recover(@PathVariable Long id) {
+        contractService.recover(id);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Contrat restauré avec succès"));
+    }
 }

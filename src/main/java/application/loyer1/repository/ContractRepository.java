@@ -14,57 +14,60 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ContractRepository extends JpaRepository<Contract, Long> {
+    Page<Contract> findByDeletedFalse(Pageable pageable);
+    List<Contract> findByDeletedFalse();
+    Page<Contract> findByDeletedTrue(Pageable pageable);
 
     Optional<Contract> findByContractNumber(String contractNumber);
-    boolean existsByContractNumber(String contractNumber);
+    boolean existsByContractNumberAndDeletedFalse(String contractNumber);
     
     // --- Récents ---
-    List<Contract> findTop5ByOrderByIdAsc();
+    List<Contract> findTop5ByDeletedFalseOrderByIdAsc();
 
     // --- Filtres par statut ---
     List<Contract> findByStatus(ContractStatus status);
     long countByStatus(ContractStatus status);
 
     // --- Filtres par région/délégation ---
-    Page<Contract> findByRegionId(Long regionId, Pageable pageable);
-    Page<Contract> findByDelegationId(Long delegationId, Pageable pageable);
+    Page<Contract> findByRegionIdAndDeletedFalse(Long regionId, Pageable pageable);
+    Page<Contract> findByDelegationIdAndDeletedFalse(Long delegationId, Pageable pageable);
 
     // --- Échéances ---
-    @Query("SELECT c FROM Contract c WHERE c.endDate <= :date AND c.status = 'ACTIF'")
+    @Query("SELECT c FROM Contract c WHERE c.endDate <= :date AND c.status = 'ACTIF' AND c.deleted = false")
     List<Contract> findExpiringBefore(@Param("date") LocalDate date);
 
-    @Query("SELECT c FROM Contract c WHERE c.endDate < :today AND c.status = 'ACTIF'")
+    @Query("SELECT c FROM Contract c WHERE c.endDate < :today AND c.status = 'ACTIF' AND c.deleted = false")
     List<Contract> findExpired(@Param("today") LocalDate today);
 
-    @Query("SELECT c FROM Contract c WHERE c.endDate BETWEEN :from AND :to AND c.status = 'ACTIF'")
+    @Query("SELECT c FROM Contract c WHERE c.endDate BETWEEN :from AND :to AND c.status = 'ACTIF' AND c.deleted = false")
     List<Contract> findExpiringBetween(@Param("from") LocalDate from, @Param("to") LocalDate to);
 
     // --- Dashboard ---
-    @Query("SELECT COALESCE(SUM(c.currentMonthlyRent), 0) FROM Contract c WHERE c.status = 'ACTIF'")
+    @Query("SELECT COALESCE(SUM(c.currentMonthlyRent), 0) FROM Contract c WHERE c.status = 'ACTIF' AND c.deleted = false")
     BigDecimal sumActiveMonthlyRents();
 
-    @Query("SELECT COALESCE(SUM(c.annualRent), 0) FROM Contract c WHERE c.status = 'ACTIF'")
+    @Query("SELECT COALESCE(SUM(c.annualRent), 0) FROM Contract c WHERE c.status = 'ACTIF' AND c.deleted = false")
     BigDecimal sumActiveAnnualRents();
 
-    @Query("SELECT COALESCE(SUM(c.charges), 0) FROM Contract c WHERE c.status = 'ACTIF'")
+    @Query("SELECT COALESCE(SUM(c.charges), 0) FROM Contract c WHERE c.status = 'ACTIF' AND c.deleted = false")
     BigDecimal sumActiveCharges();
 
     @Query("SELECT c.region.name, SUM(c.currentMonthlyRent) FROM Contract c " +
-           "WHERE c.status = 'ACTIF' GROUP BY c.region.name ORDER BY SUM(c.currentMonthlyRent) DESC")
+           "WHERE c.status = 'ACTIF' AND c.deleted = false GROUP BY c.region.name ORDER BY SUM(c.currentMonthlyRent) DESC")
     List<Object[]> sumRentsByRegion();
 
-    @Query("SELECT c.region.name, COUNT(c) FROM Contract c GROUP BY c.region.name")
+    @Query("SELECT c.region.name, COUNT(c) FROM Contract c WHERE c.deleted = false GROUP BY c.region.name")
     List<Object[]> countByRegion();
 
-    @Query("SELECT c.status, COUNT(c) FROM Contract c GROUP BY c.status")
+    @Query("SELECT c.status, COUNT(c) FROM Contract c WHERE c.deleted = false GROUP BY c.status")
     List<Object[]> countByStatusGroup();
 
     // --- Recherche globale ---
-    @Query("SELECT c FROM Contract c WHERE " +
+    @Query("SELECT c FROM Contract c WHERE c.deleted = false AND (" +
            "LOWER(c.contractNumber) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
            "LOWER(c.address) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
            "LOWER(c.owner.name) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
            "LOWER(c.assignment) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           "LOWER(c.landReference) LIKE LOWER(CONCAT('%', :q, '%'))")
+           "LOWER(c.landReference) LIKE LOWER(CONCAT('%', :q, '%')))")
     Page<Contract> searchGlobal(@Param("q") String query, Pageable pageable);
 }

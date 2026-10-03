@@ -59,6 +59,10 @@ public class Contract {
     @Column(name = "land_reference", length = 100)
     private String landReference;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private boolean deleted = false;
+
     @Column(name = "property_type", length = 100)
     private String propertyType;
 
