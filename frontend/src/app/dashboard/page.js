@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import useSWR from 'swr';
 import Navbar from '@/components/Navbar';
 import { dashboardApi, contractsApi } from '@/lib/api';
 
@@ -29,34 +30,31 @@ export default function DashboardPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
-  const [stats, setStats] = useState(null);
-  const [expiring, setExpiring] = useState([]);
-  const [expired, setExpired] = useState([]);
-  const [recent, setRecent] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const fetcher = async () => {
+    const [dashRes, expRes, expiredRes, recentRes] = await Promise.all([
+      dashboardApi.getSummary(),
+      contractsApi.getExpiring(30),
+      contractsApi.getExpired(),
+      contractsApi.getRecent(),
+    ]);
+    return {
+      stats: dashRes.data || dashRes,
+      expiring: expRes.data || [],
+      expired: expiredRes.data || [],
+      recent: recentRes.data || [],
+    };
+  };
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [dashRes, expRes, expiredRes, recentRes] = await Promise.all([
-          dashboardApi.getSummary(),
-          contractsApi.getExpiring(30),
-          contractsApi.getExpired(),
-          contractsApi.getRecent(),
-        ]);
-        setStats(dashRes.data || dashRes);
-        setExpiring(expRes.data || []);
-        setExpired(expiredRes.data || []);
-        setRecent(recentRes.data || []);
-      } catch (err) {
-        setError(t.common.error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, []);
+  const { data, error: swrError, isLoading } = useSWR('dashboard-summary', fetcher, {
+    revalidateOnFocus: true,
+  });
+
+  const stats = data?.stats || null;
+  const expiring = data?.expiring || [];
+  const expired = data?.expired || [];
+  const recent = data?.recent || [];
+  const loading = isLoading && !data;
+  const error = swrError ? t.common.error : '';
 
   const statValues = stats ? {
     totalContracts:   stats.totalContracts,
