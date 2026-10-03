@@ -66,6 +66,7 @@ const fr = {
       contractType: 'Type',
       startDate: 'Début du contrat',
       lastAmendment: 'Dernier avenant',
+      initialMonthlyRent: 'Loyer mensuel initial',
       currentMonthlyRent: 'Loyer mensuel actuel',
       rentIncreases: 'Augmentations définies',
       activityChange: 'Changement d\'activité',

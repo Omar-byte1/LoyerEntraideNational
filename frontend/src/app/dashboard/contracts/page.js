@@ -580,6 +580,7 @@ export default function ContractsPage() {
                   <th>{t.contracts.col.contractType}</th>
                   <th>{t.contracts.col.startDate}</th>
                   <th>{t.contracts.col.lastAmendment}</th>
+                  <th>{t.contracts.col.initialMonthlyRent}</th>
                   <th>{t.contracts.col.currentMonthlyRent}</th>
                   <th>{t.contracts.col.rentIncreases}</th>
                   <th>{t.contracts.col.activityChange}</th>
@@ -591,7 +592,7 @@ export default function ContractsPage() {
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={18} style={{ textAlign: 'center', padding: '40px' }}>
+                    <td colSpan={19} style={{ textAlign: 'center', padding: '40px' }}>
                       <div className="flex items-center justify-between" style={{ justifyContent: 'center', gap: '10px' }}>
                         <span className="spinner spinner-sm" />
                         <span className="text-muted">{t.contracts.loading}</span>
@@ -601,7 +602,7 @@ export default function ContractsPage() {
                 )}
                 {!loading && contracts.length === 0 && (
                   <tr>
-                    <td colSpan={18}>
+                    <td colSpan={19}>
                       <div className="empty-state">
                         <span className="empty-state-icon">📭</span>
                         <span className="empty-state-text">{t.contracts.noData}</span>
@@ -637,6 +638,9 @@ export default function ContractsPage() {
                       {c.amendments?.length > 0
                         ? c.amendments[c.amendments.length - 1].number
                         : '—'}
+                    </td>
+                    <td style={{ color: 'var(--color-info)', fontWeight: 600 }}>
+                      {fmt(c.initialMonthlyRent)}
                     </td>
                     <td style={{ color: 'var(--color-gold)', fontWeight: 700 }}>
                       {fmt(c.currentMonthlyRent)}

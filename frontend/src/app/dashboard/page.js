@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
@@ -27,6 +28,7 @@ function formatValue(val, isMoney, currency) {
 export default function DashboardPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const router = useRouter();
   const [stats, setStats] = useState(null);
   const [expiring, setExpiring] = useState([]);
   const [expired, setExpired] = useState([]);
@@ -115,7 +117,16 @@ export default function DashboardPage() {
               <span>🆕</span>
               Derniers contrats ajoutés
             </h3>
-            <span className="badge badge-success">{recent.length}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="badge badge-success">{recent.length}</span>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => router.push('/dashboard/contracts')}
+                style={{ fontSize: '0.72rem', color: 'var(--color-gold)' }}
+              >
+                Voir tous →
+              </button>
+            </div>
           </div>
           {recent.length === 0 ? (
             <div className="empty-state">
@@ -135,11 +146,16 @@ export default function DashboardPage() {
                     <th>Date de début</th>
                     <th>{t.contracts.col.endDate}</th>
                     <th>{t.contracts.col.status}</th>
+                    <th>{t.contracts.col.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recent.map((c) => (
-                    <tr key={c.id}>
+                    <tr key={c.id}
+                      onClick={() => router.push(`/dashboard/contracts/${c.id}`)}
+                      style={{ cursor: 'pointer' }}
+                      title="Cliquez pour voir le détail"
+                    >
                       <td className="text-gold font-semibold">{c.contractNumber}</td>
                       <td>{c.owner?.name || '—'}</td>
                       <td>{c.region?.name || '—'}</td>
@@ -147,6 +163,16 @@ export default function DashboardPage() {
                       <td className="text-danger">{c.endDate || '—'}</td>
                       <td>
                         <StatusBadge status={c.status} t={t} />
+                      </td>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className="btn btn-ghost btn-sm btn-icon"
+                          title={t.common.view}
+                          onClick={() => router.push(`/dashboard/contracts/${c.id}`)}
+                          style={{ color: 'var(--color-gold)' }}
+                        >
+                          👁️
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -163,7 +189,16 @@ export default function DashboardPage() {
               <span>⚡</span>
               {t.dashboard.expiringIn30}
             </h3>
-            <span className="badge badge-warning">{expiring.length}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="badge badge-warning">{expiring.length}</span>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => router.push('/dashboard/contracts')}
+                style={{ fontSize: '0.72rem', color: 'var(--color-gold)' }}
+              >
+                Voir tous →
+              </button>
+            </div>
           </div>
           {expiring.length === 0 ? (
             <div className="empty-state">
@@ -183,11 +218,16 @@ export default function DashboardPage() {
                     <th>{t.contracts.col.endDate}</th>
                     <th>{t.contracts.col.currentMonthlyRent}</th>
                     <th>{t.contracts.col.status}</th>
+                    <th>{t.contracts.col.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {expiring.map((c) => (
-                    <tr key={c.id}>
+                    <tr key={c.id}
+                      onClick={() => router.push(`/dashboard/contracts/${c.id}`)}
+                      style={{ cursor: 'pointer' }}
+                      title="Cliquez pour voir le détail"
+                    >
                       <td className="text-gold font-semibold">{c.contractNumber}</td>
                       <td>{c.owner?.name || '—'}</td>
                       <td>{c.region?.name || '—'}</td>
@@ -199,6 +239,16 @@ export default function DashboardPage() {
                       </td>
                       <td>
                         <StatusBadge status={c.status} t={t} />
+                      </td>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className="btn btn-ghost btn-sm btn-icon"
+                          title={t.common.view}
+                          onClick={() => router.push(`/dashboard/contracts/${c.id}`)}
+                          style={{ color: 'var(--color-gold)' }}
+                        >
+                          👁️
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -215,7 +265,16 @@ export default function DashboardPage() {
               <span>⚠️</span>
               Contrats déjà expirés
             </h3>
-            <span className="badge badge-danger">{expired.length}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="badge badge-danger">{expired.length}</span>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => router.push('/dashboard/contracts')}
+                style={{ fontSize: '0.72rem', color: 'var(--color-gold)' }}
+              >
+                Voir tous →
+              </button>
+            </div>
           </div>
           {expired.length === 0 ? (
             <div className="empty-state">
@@ -235,11 +294,16 @@ export default function DashboardPage() {
                     <th>{t.contracts.col.endDate}</th>
                     <th>{t.contracts.col.currentMonthlyRent}</th>
                     <th>{t.contracts.col.status}</th>
+                    <th>{t.contracts.col.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {expired.map((c) => (
-                    <tr key={c.id}>
+                    <tr key={c.id}
+                      onClick={() => router.push(`/dashboard/contracts/${c.id}`)}
+                      style={{ cursor: 'pointer' }}
+                      title="Cliquez pour voir le détail"
+                    >
                       <td className="text-danger font-semibold">{c.contractNumber}</td>
                       <td>{c.owner?.name || '—'}</td>
                       <td>{c.region?.name || '—'}</td>
@@ -251,6 +315,16 @@ export default function DashboardPage() {
                       </td>
                       <td>
                         <StatusBadge status={c.status} t={t} />
+                      </td>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className="btn btn-ghost btn-sm btn-icon"
+                          title={t.common.view}
+                          onClick={() => router.push(`/dashboard/contracts/${c.id}`)}
+                          style={{ color: 'var(--color-gold)' }}
+                        >
+                          👁️
+                        </button>
                       </td>
                     </tr>
                   ))}

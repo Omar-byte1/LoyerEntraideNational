@@ -66,6 +66,7 @@ const ar = {
       contractType: 'نوع',
       startDate: 'بداية العقار',
       lastAmendment: 'أخر ملحق',
+      initialMonthlyRent: 'الدسومة الكرائية الأولية',
       currentMonthlyRent: 'الدسومة الكرائية الحالية',
       rentIncreases: 'الزيادات المحددة',
       activityChange: 'تغيير النشاط',
